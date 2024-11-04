@@ -330,11 +330,18 @@ class TestWheelFileWrites:
 
     def test_writes_preserve_mtime(self, wf, tmp_file):
         tmp_file.touch()
+
         # 1600000000 is September 2020
-        os.utime(tmp_file, (1600000000, 1600000000))
+        ftime = 1600000000
+        os.utime(tmp_file, (ftime, ftime))
 
         wf.write(tmp_file, arcname="file")
-        assert wf.zipfile.getinfo("file").date_time == (2020, 9, 13, 14, 26, 40)
+        date_time = wf.zipfile.getinfo("file").date_time
+
+        from datetime import datetime
+        unix_timestamp = int(datetime(*date_time).timestamp())
+
+        assert unix_timestamp == ftime
 
     def test_write_has_resolve_arg(self, wf, tmp_file):
         wf.write(tmp_file, resolve=True)
